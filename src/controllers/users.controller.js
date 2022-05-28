@@ -1,5 +1,6 @@
 const userModel = require('../models/users.model');
 const crypt = require('../config/encrypting');
+const jwt = require('jsonwebtoken');
 
 const doRegister = async (req, res) => {
     let { display_name, username, password, confirm_password } = req.body;
@@ -35,6 +36,26 @@ const doLogin = async (req, res) => {
     }
 }
 
+const doLoginJWT = async (req, res) => {
+    const { username, password } = req.body;
+    const usr = await userModel.findOne({ 'username': username });
+    const accessToken = jwt.sign(usr, process.env.ACCESS_TOKEN_SECRET);
+    res.json({ accessToken: accessToken});
+    authenticateToken();
+}
+
+function authenticateToken(req, res, next){
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if(token == null) return res.sendStatus(401)
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, usr) => {
+        if(err) return res.sendStatus(403);
+        req.usr = usr;
+        next()
+    })
+}
+
 const fetchPrevLogin = async (req, res) => {
     res.status(200).send(await userModel.findById(req.body.user_id));
 }
@@ -48,5 +69,5 @@ const fetchUser = async (req, res) => {
 }
 
 module.exports = {
-    doRegister, doLogin, fetchPrevLogin, fetchUser
+    doRegister, doLogin, doLoginJWT, fetchPrevLogin, fetchUser
 }
