@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const db_connection = require('./database/connection');
 require('colors');
-require('dotenv').config({ path: __dirname + '/config/.env' });
+require('dotenv').config({ path: __dirname + '/database/.env' });
 
 // Settings
 const PORT = process.env.PORT || 5000;
@@ -22,13 +22,13 @@ app.use((req, res, next) => {
 
 // Rutas
 app.use('/users', require('./routes/users.routes'));
-app.use('/posts', require('./routes/posts.routes'));
-app.use('/follows', require('./routes/follows.routes'));
+// app.use('/posts', require('./routes/posts.routes'));
+// app.use('/follows', require('./routes/follows.routes'));
 
 
 // Arrancamos el servidor
 // http://localhost:5000
 app.listen(PORT, async function () {
-    console.log(`\nServidor iniciado en el puerto ${PORT}.`.green);
+    console.log(`\nServidor iniciado en http://localhost:${PORT}.`.green);
     const connection = await db_connection(process.env.DB_NAME);
 });

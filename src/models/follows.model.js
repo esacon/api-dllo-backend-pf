@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const reviewSchema = new mongoose.Schema({
+const followSchema = new mongoose.Schema({
     user_id: {
         type: String,
         required: true
@@ -24,5 +24,5 @@ const reviewSchema = new mongoose.Schema({
     }
 });
 
-const Review = mongoose.model('Follow', reviewSchema);
-module.exports = Review;
+const Follow = mongoose.model('Follow', followSchema);
+module.exports = Follow;

@@ -1,73 +1,72 @@
 const userModel = require('../models/users.model');
-const crypt = require('../config/encrypting');
+const path = require('path');
 const jwt = require('jsonwebtoken');
+const crypt = require('../utils/encrypting');
 
-const doRegister = async (req, res) => {
-    let { display_name, username, password, confirm_password } = req.body;
+require('dotenv').config({ path: path.resolve(__dirname, '../database/.env') });
 
-    password = crypt.cryptPassword(password);
+const generateAccessWebToken = data => {
+    return jwt.sign(data, process.env.ACCESS_TOKEN_SECRET)
+}
 
-    const user = new userModel({
-        display_name: display_name,
-        username: username,
-        password: password
+const validateToken = accessToken => {
+    return jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+}
+
+// GET /users
+const fetchUser = async (req, res) => {
+    const { user_id } = req.query;    
+    const user = user_id ? await userModel.findById(user_id) : null;
+    if (!user) res.status(400).send({ error: 'Invalid user_id.' });
+    res.status(200).send({
+        username: user.username,
+        email: user.email,
+        bio: user.bio,
+        liked_count: user.liked_posts.length,
+        posts_count: user.posts.length,
+        followers_count: user.followers.length,
+        followed_count: user.following.length
     });
+}
 
+// POST /users/login
+const doLogin = async (req, res) => {
+    const { username, password, token } = req.body;
+    if (token) {
+        const decodedInfo = validateToken(token);
+        const user = decodedInfo.id ? await userModel.findById(decodedInfo.id) : null;
+        if (!user) res.send(403).send({ error: "Invalid token." });
+        res.status(200).send({});
+    } else if (username) {
+        const user = await userModel.findOne({ username });
+        const passwordCorrect = user === null ? false : crypt.comparePassword(password, user.password);
+        if (!user || !passwordCorrect) {
+            res.status(401).send({ error: "Invalid user or password." })
+        }
+        const token = generateAccessWebToken({ id: user._id, name: user.username });
+        res.status(200).send(token);
+    }
+    res.status(500).send({
+        error: "Token or username is required."
+    });
+}
+
+// POST /users
+const doRegister = async (req, res) => {
+    const { password } = req.body;
+    const user = new userModel({
+        ...req.body,
+        password: crypt.cryptPassword(password)
+    });
     try {
         await user.save();
-        res.status(200).send(user);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-}
-
-const doLogin = async (req, res) => {
-    const { username, password } = req.body;
-    const usr = await userModel.findOne({ 'username': username });
-
-    try {
-        if (crypt.comparePassword(password, usr.password)) {
-            res.status(200).send(usr);    
-        } else {
-            res.status(404).send('User not found.');
-        }       
-    } catch (error) {
-        res.status(500).send("error");
-    }
-}
-
-const doLoginJWT = async (req, res) => {
-    const { username, password } = req.body;
-    const usr = await userModel.findOne({ 'username': username });
-    const accessToken = jwt.sign(usr, process.env.ACCESS_TOKEN_SECRET);
-    res.json({ accessToken: accessToken});
-    authenticateToken();
-}
-
-function authenticateToken(req, res, next){
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if(token == null) return res.sendStatus(401)
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, usr) => {
-        if(err) return res.sendStatus(403);
-        req.usr = usr;
-        next()
-    })
-}
-
-const fetchPrevLogin = async (req, res) => {
-    res.status(200).send(await userModel.findById(req.body.user_id));
-}
-
-const fetchUser = async (req, res) => {
-    try {
-        res.status(200).send(await userModel.findById(req.query.user_id));      
+        const token = generateAccessWebToken({ id: user._id, name: user.username });
+        res.status(201).send(token);
     } catch (error) {
         res.status(500).send(error);
     }
 }
 
 module.exports = {
-    doRegister, doLogin, doLoginJWT, fetchPrevLogin, fetchUser
+    fetchUser, doRegister, doLogin
 }

@@ -1,13 +1,37 @@
-const historyModel = require('../models/history.model');
+const followsModel = require('../models/follows.model');
 
-const fetchHistory = async (req, res) => {    
+const fetchFollowing = async (req, res) => {    
     try {
-        res.status(200).json(await historyModel.find({ 'user_id': req.params.user_id }));      
+        res.status(200).json(await followsModel.find({ 'user_id': req.params.user_id }));      
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+const fetchFollowers = async (req, res) => {    
+    try {
+        res.status(200).json(await followsModel.find({ 'user_id': req.params.user_id }));      
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+const requestUser = async (req, res) => {    
+    try {
+        res.status(200).json(await followsModel.find({ 'user_id': req.params.user_id }));      
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+const responseUser = async (req, res) => {    
+    try {
+        res.status(200).json(await followsModel.find({ 'user_id': req.params.user_id }));      
     } catch (error) {
         res.status(500).send(error)
     }
 }
 
 module.exports = {
-    fetchHistory
+    fetchFollowing, fetchFollowers, requestUser, responseUser
 }
