@@ -1,4 +1,4 @@
-const historyModel = require('../models/history.model');
+const historyModel = require('../models/follows.model');
 
 const fetchHistory = async (req, res) => {    
     try {
