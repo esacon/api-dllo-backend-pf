@@ -1,15 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const Post = require('../controllers/posts.controller');
+const Post = require("../controllers/posts.controller");
+const { validateToken } = require("../middleware/auth.middleware");
 
-router.get('/', Post.fetchPost);
-router.get('/liked-by', Post.fetchPost);
-router.get('/saved-by', Post.fetchPost);
-router.get('/timeline', Post.fetchPost);
-
-router.post('/', Post.createPost);
-router.post('/like', Post.createPost);
-router.post('/save', Post.createPost);
+router.post("/", validateToken, Post.createPost);
+router.get("/", validateToken, Post.fetchPost);
+router.post("/like", validateToken, Post.likePost);
+router.post("/save", validateToken, Post.savePost);
+router.post("/comment", validateToken, Post.commentPost);
 
 module.exports = router;
