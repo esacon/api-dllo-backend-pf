@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const Follow = require('../controllers/follows.controller');
+const { validateToken } = require('../middleware/auth.middleware');
 
-router.get('/followers', Follow.fetchFollowers);
-router.get('/following', Follow.fetchFollowing);
-router.post('/request', Follow.requestUser);
-router.post('/response', Follow.responseUser);
+router.get('/followers', validateToken, Follow.fetchFollowers);
+router.get('/following', validateToken, Follow.fetchFollowing);
+router.post('/request', validateToken, Follow.requestUser);
+router.post('/response', validateToken, Follow.responseUser);
 
 module.exports = router;

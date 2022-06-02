@@ -1,7 +1,7 @@
 const userModel = require('../models/users.model');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-const crypt = require('../utils/encrypting');
+const crypt = require('../utils/encrypting.utils');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../database/.env') });
 
