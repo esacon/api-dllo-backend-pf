@@ -26,8 +26,6 @@ app.use('/users', require('./routes/users.routes'));
 app.use('/follows', require('./routes/follows.routes'));
 
 
-// Arrancamos el servidor
-// http://localhost:5000
 app.listen(PORT, async function () {
     await db_connection(process.env.DB_NAME);
     console.log(`\nServidor iniciado en http://localhost:${PORT}.`.green);

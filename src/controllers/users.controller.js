@@ -15,10 +15,10 @@ const validateToken = accessToken => {
 
 // GET /users
 const fetchUser = async (req, res) => {
-    const { user_id } = req.query;    
+    const { user_id } = req.query;
     const user = user_id ? await userModel.findById(user_id) : null;
-    if (!user) res.status(400).send({ error: 'Invalid user_id.' });
-    res.status(200).send({
+    if (!user) return res.status(400).send({ error: 'Invalid user_id.' });
+    return res.status(200).send({
         username: user.username,
         email: user.email,
         bio: user.bio,
@@ -36,17 +36,17 @@ const doLogin = async (req, res) => {
         const decodedInfo = validateToken(token);
         const user = decodedInfo.id ? await userModel.findById(decodedInfo.id) : null;
         if (!user) res.send(403).send({ error: "Invalid token." });
-        res.status(200).send({});
+        return res.status(200).send({});
     } else if (username) {
         const user = await userModel.findOne({ username });
         const passwordCorrect = user === null ? false : crypt.comparePassword(password, user.password);
         if (!user || !passwordCorrect) {
-            res.status(401).send({ error: "Invalid user or password." })
+            return res.status(401).send({ error: "Invalid user or password." })
         }
         const token = generateAccessWebToken({ id: user._id, name: user.username });
-        res.status(200).send(token);
+        return res.status(200).send(token);
     }
-    res.status(500).send({
+    return res.status(500).send({
         error: "Token or username is required."
     });
 }
@@ -61,9 +61,9 @@ const doRegister = async (req, res) => {
     try {
         await user.save();
         const token = generateAccessWebToken({ id: user._id, name: user.username });
-        res.status(201).send(token);
+        return res.status(201).send(token);
     } catch (error) {
-        res.status(500).send(error);
+        return res.status(500).send(error);
     }
 }
 

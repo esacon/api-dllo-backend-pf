@@ -2,61 +2,59 @@ const userModel = require('../models/users.model');
 const requestModel = require('../models/requests.model');
 
 // GET /follows/following
-const fetchFollowing = async (req, res) => {    
+const fetchFollowing = async (req, res) => {
     const { user_id } = req.query;
     const user = user_id ? await userModel.findById(user_id) : null;
-    if (!user) res.status(400).send({ error: 'User not found.' }); 
+    if (!user) return res.status(404).send({ error: 'User not found.' });
     const following = await userModel.find({ _id: { $in: user.following } });
-    res.status(200).send(following);
+    return res.status(200).send(following);
 }
 
 // GET /follows/followers
-const fetchFollowers = async (req, res) => {  
+const fetchFollowers = async (req, res) => {
     const { user_id } = req.query;
     const user = user_id ? await userModel.findById(user_id) : null;
-    if (!user) res.status(400).send({ error: 'User not found.' }); 
+    if (!user) return res.status(404).send({ error: 'User not found.' });
     const followers = await userModel.find({ _id: { $in: user.followers } });
-    res.status(200).send(followers);
+    return res.status(200).send(followers);
 }
 
 // POST /follows/request
-const requestUser = async (req, res) => {  
+const requestUser = async (req, res) => {
     const { id } = req.user;
     const { user_id } = req.body;
     const user = id ? await userModel.findById(id) : null;
-    if (!user) res.status(404).send({ error: 'User not found.' }); 
+    if (!user) return res.status(404).send({ error: 'User not found.' });
+    if (String(user._id) === user_id) return res.status(500).send({ error: 'An user cannot follow itself.' });
     console.log(user.following);
-    if (user_id in user.following) res.status(400).send({ error: 'The user is already being followed.' }); 
+    if (user_id in user.following) return res.status(400).send({ error: 'The user is already being followed.' });
     const request = new requestModel({
         requester: id,
         requested: user_id
     });
     await request.save();
-    res.status(200).send({});
+    return res.status(200).send({});
 }
 
 // POST /follows/response
-const responseUser = async (req, res) => {    
+const responseUser = async (req, res) => {
     const { id } = req.user;
     const { request_id, action } = req.body;
-    const request = request_id ? requestModel.findById(request_id) : null; 
-    if (!request || !action) res.status(400).send({ error: 'Invalid request_id or action.' }); 
+    const request = request_id ? await requestModel.findById(request_id) : null;
+    if (!request || !action) return res.status(400).send({ error: 'Invalid request_id or action.' });
     if (id === request.requested) {
         switch (action) {
             case 'accept':
-                await userModel.findByIdAndUpdate(request.requester, { $push: { following: id}});
-                await userModel.findByIdAndUpdate(id, { $push: { followers: request.requester}});
-                res.status(200).send({});
-                break;
+                await userModel.findByIdAndUpdate(request.requester, { $push: { following: id } });
+                await userModel.findByIdAndUpdate(id, { $push: { followers: request.requester } });
+                return res.status(200).send({});
             case 'reject':
-                res.status(200).send({});
-                break;
+                return res.status(200).send({});
             default:
-                res.status(500).send({error: 'Invalid action.'});
-                break;
+                return res.status(500).send({ error: 'Invalid action.' });
         }
     }
-    res.status(403).send({error: 'Access denied.'});
+    return res.status(403).send({ error: 'Access denied.' });
 }
 
 module.exports = {
