@@ -22,11 +22,12 @@ app.use((req, res, next) => {
 
 // Rutas
 app.use('/users', require('./routes/users.routes'));
-// app.use('/posts', require('./routes/posts.routes'));
+app.use('/posts', require('./routes/posts.routes'));
 app.use('/follows', require('./routes/follows.routes'));
 
-
-app.listen(PORT, async function () {
+const server = app.listen(PORT, async () => {
     await db_connection(process.env.DB_NAME);
     console.log(`\nServidor iniciado en http://localhost:${PORT}.`.green);
 });
+
+module.exports = { app, server };

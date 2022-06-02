@@ -8,6 +8,11 @@ const requestSchema = new mongoose.Schema({
     requested: {
         type: mongoose.Schema.Types.ObjectId,
         required: true
+    },
+    status: {
+        type: String,
+        required: true,
+        default: 'undefined'
     }
 });
 
