@@ -3,6 +3,16 @@ const mongoose = require('mongoose');
 const path = require('path');
 const { app, server} = require('../server');
 
+/**
+ * Lista de seguidores de un usuario
+ * Lista de seguidos de un usuario
+ * Solicitar seguir
+ * Aceptar solicitud
+ * Aceptar solicitud previamente aceptada o rechazada
+ * Rechazar solicitud
+ * Rechazar solicitud previamente aceptada o rechazada
+ */
+
 require('dotenv').config({ path: path.resolve(__dirname, '../database/.env') });
 
 const api = supertest(app);
