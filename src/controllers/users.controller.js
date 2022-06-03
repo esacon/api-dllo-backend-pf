@@ -53,7 +53,9 @@ const doLogin = async (req, res) => {
 
 // POST /users
 const doRegister = async (req, res) => {
-    const { password } = req.body;
+    const { password } = req.body;    
+    const result = await userModel.find({username: req.body.username});
+    if (result.length) return res.status(400).send({ error: 'User already exists.' });
     const user = new userModel({
         ...req.body,
         password: crypt.cryptPassword(password)

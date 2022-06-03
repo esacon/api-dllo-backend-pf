@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema({
   bio: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    unique: false
   },  
   posts: [{type: mongoose.Schema.Types.ObjectId}],
   following: [{type: mongoose.Schema.Types.ObjectId}],

@@ -4,9 +4,6 @@ const db_connection = require('./database/connection');
 require('colors');
 require('dotenv').config({ path: __dirname + '/database/.env' });
 
-require("dotenv").config();
-console.log(process.env.PORT)
-console.log(process.env.DB_NAME)
 // Settings
 const PORT = process.env.PORT || 5000;
 
