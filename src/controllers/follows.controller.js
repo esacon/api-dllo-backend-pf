@@ -48,7 +48,7 @@ const responseUser = async (req, res) => {
     if (!request || !action) return res.status(400).send({ error: 'Invalid request_id or action.' });
     if (id === String(request.requested)) {
         if (request.status === 'accepted') return res.status(400).send({ error: 'The user has already accepted the follow request.' });
-        if (request.status === 'rejected') return res.status(400).send({ error: 'The user has already rjected the follow request.' });
+        if (request.status === 'rejected') return res.status(400).send({ error: 'The user has already rejected the follow request.' });
         switch (action) {
             case 'accept':
                 await userModel.findByIdAndUpdate(request.requester, { $push: { following: id } });

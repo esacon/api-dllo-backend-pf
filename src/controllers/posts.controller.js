@@ -19,10 +19,17 @@ const createPost = async (req, res) => {
 };
 
 const fetchPost = async (req, res) => {
+  if (req.query.author) {
+    fetchAuthor(req, res);
+  } else {
+    fetchOnePost(req, res);
+  }
+};
+
+const fetchOnePost = async (req, res) => {
   try {
     if (ObjectId.isValid(req.body.post_id)) {
       const fetchPost = await postModel.findById(req.body.post_id);
-      console.log(fetchPost);
       if (fetchPost) {
         return res.status(200).send(fetchPost);
       } else {
@@ -37,20 +44,30 @@ const fetchPost = async (req, res) => {
 };
 
 const likePost = async (req, res) => {
+  const { id } = req.user;
+  let postSucces = false;
+  let userSucces = false;
+
   try {
     if (ObjectId.isValid(req.body.post_id)) {
-      postModel.findOneAndUpdate(
-        { _id: req.body.post_id },
-        { $inc: { likes: 1 } },
-        { upsert: true },
-        function (err) {
-          if (err) {
-            return res.status(500).send({ err: "failed to update" });
-          } else {
-            return res.status(200).send("Like saved.");
-          }
-        }
-      );
+      await postModel
+        .findOneAndUpdate(
+          { _id: req.body.post_id },
+          { $push: { liked_by: id }, $inc: { likes: 1 } },
+          { upsert: true }
+        )
+        .then(() => (userSucces = true))
+        .catch((err) => res.status(500).send({ message: err }));
+      const likedPost = await postModel.findById(req.body.post_id);
+      await userModel
+        .findOneAndUpdate(
+          { _id: id },
+          { $push: { liked_posts: likedPost } },
+          { upsert: true }
+        )
+        .then(() => (postSucces = true))
+        .catch((err) => res.status(500).send({ message: err }));
+      if (postSucces && userSucces) return res.status(200).send("Like saved.");
     } else {
       return res.status(500).send({ err: "invalid id" });
     }
@@ -60,26 +77,19 @@ const likePost = async (req, res) => {
 };
 
 const savePost = async (req, res) => {
+  const { id } = req.user;
   try {
     if (ObjectId.isValid(req.body.post_id)) {
       const fetchPost = await postModel.findById(req.body.post_id);
       if (fetchPost) {
-        if (ObjectId.isValid(req.body.user_id)) {
-          userModel.findOneAndUpdate(
-            { _id: req.body.user_id },
-            { $push: { saved_posts:fetchPost } },
-            { upsert: true },
-            function (err) {
-              if (err) {
-                return res.status(500).send({ err: "failed to update" });
-              } else {
-                return res.status(200).send("Post Saved.");
-              }
-            }
-          );
-        } else {
-          return res.status(500).send({ err: "Invalid user ID" });
-        }
+        await userModel
+          .findOneAndUpdate(
+            { _id: id },
+            { $push: { saved_posts: fetchPost } },
+            { upsert: true }
+          )
+          .then(() => res.status(200).send("Post Saved."))
+          .catch((err) => res.status(500).send({ message: err }));
       } else {
         return res.status(500).send({ err: "No post found" });
       }
@@ -114,10 +124,56 @@ const commentPost = async (req, res) => {
   }
 };
 
+const fetchAuthor = async (req, res) => {
+  const { author } = req.query;
+  const { id } = req.user;
+
+  try {
+    const user = await userModel.findById(id);
+    if (author === id || user.following.includes(author)) {
+      if (ObjectId.isValid(author)) {
+        const post = await postModel.find({ author: author });
+        res.status(200).send(post);
+      } else {
+        return res.status(500).send({ err: "invalid id" });
+      }
+    } else {
+      return res.status(500).send({ err: "You dont follow this user" });
+    }
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+};
+
+const likedBy = async (req, res) => {
+  const { user_id } = req.query;
+  try {
+    const user = await userModel.findById(user_id);
+    if (user.show_likes) {
+      res.status(200).send(user.liked_posts);
+    } else {
+      return res.status(500).send({ err: "user dosent show likes" });
+    }
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+};
+const savedBy = async (req, res) => {
+  const { id } = req.user;
+  try {
+    const user = await userModel.findById(id);
+    res.status(200).send(user.saved_posts);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+};
+
 module.exports = {
   createPost,
   fetchPost,
   likePost,
   savePost,
   commentPost,
+  likedBy,
+  savedBy,
 };

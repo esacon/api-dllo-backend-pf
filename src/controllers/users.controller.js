@@ -44,7 +44,7 @@ const doLogin = async (req, res) => {
             return res.status(401).send({ error: "Invalid user or password." })
         }
         const token = generateAccessWebToken({ id: user._id, name: user.username });
-        return res.status(200).send(token);
+        return res.status(200).send({token});
     }
     return res.status(500).send({
         error: "Token or username is required."
@@ -53,9 +53,10 @@ const doLogin = async (req, res) => {
 
 // POST /users
 const doRegister = async (req, res) => {
-    const { password } = req.body;    
+    const { username, bio, email, birthdate, password } = req.body;    
     const result = await userModel.find({username: req.body.username});
     if (result.length) return res.status(400).send({ error: 'User already exists.' });
+    if (!username || !bio || !email || !birthdate || !password) return res.status(500).send({ error: 'Información incompleta.' });
     const user = new userModel({
         ...req.body,
         password: crypt.cryptPassword(password)
@@ -63,7 +64,7 @@ const doRegister = async (req, res) => {
     try {
         await user.save();
         const token = generateAccessWebToken({ id: user._id, name: user.username });
-        return res.status(201).send(token);
+        return res.status(201).send({token});
     } catch (error) {
         return res.status(500).send(error);
     }
