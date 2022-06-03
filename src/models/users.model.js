@@ -1,34 +1,38 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   password: {
     type: String,
-    required: true
+    required: true,
   },
   email: {
     type: String,
-    required: true
-  },  
+    required: true,
+  },
   birthdate: {
     type: String,
-    required: true
-  },  
+    required: true,
+  },
   bio: {
     type: String,
     required: true,
-    trim: true
-  },  
-  posts: [{type: mongoose.Schema.Types.ObjectId}],
-  following: [{type: mongoose.Schema.Types.ObjectId}],
-  followers: [{type: mongoose.Schema.Types.ObjectId}],
-  saved_posts: [{type: mongoose.Schema.Types.ObjectId}],
-  liked_posts: [{type: mongoose.Schema.Types.ObjectId}]
+    trim: true,
+  },
+  show_likes: {
+    type: Boolean,
+    default: true,
+  },
+  posts: [{ type: mongoose.Schema.Types.ObjectId }],
+  following: [{ type: mongoose.Schema.Types.ObjectId }],
+  followers: [{ type: mongoose.Schema.Types.ObjectId }],
+  saved_posts: { type: [Object] },
+  liked_posts: { type: [Object] },
 });
 
-const Users = mongoose.model('Users', userSchema);
+const Users = mongoose.model("Users", userSchema);
 module.exports = Users;
